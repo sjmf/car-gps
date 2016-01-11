@@ -13,8 +13,9 @@ args = parser.parse_args()
 
 
 # When running with terminal output on
-import pprint
-pp = pprint.PrettyPrinter(indent=4).pprint
+if args.debug:
+    import pprint
+    pp = pprint.PrettyPrinter(indent=4).pprint
 
 
 # Unwrap (recursively) gps.client.dictwrapper objects
@@ -51,9 +52,6 @@ def auth_stomp():
 # Set up the STOMP connection
 def setup_stomp():
     global conn, stomp_conf
-    if args.debug:
-        print("Setting up new STOMP connection")
-
     stomp_conf = auth_stomp()
 
     conn = stomp.Connection(
@@ -68,6 +66,10 @@ def setup_stomp():
 
     conn.start()
     conn.connect(stomp_conf['user'], stomp_conf['pass'], wait=True)
+
+    if args.debug:
+        print("STOMP connected")
+
 
 
 # Send a message
@@ -97,29 +99,8 @@ def main():
                 # Filter 'TPV' reports for interesting values
                 if report['class'] == 'TPV':
                     to_send = {}
-                    
-                    #time   Time/date stamp in ISO8601 format, UTC.
-                    if hasattr(report, 'time'):
-                       to_send['time'] = report.time
-                    #lat     Latitude in degrees: +/- signifies North/South
-                    if hasattr(report, 'lat'):
-                       to_send['lat'] = report.lat
-                    #lon     Longitude in degrees: +/- signifies East/West
-                    if hasattr(report, 'lon'):
-                       to_send['lon'] = report.lon
-                    #alt     Altitude in meters
-                    if hasattr(report, 'alt'):
-                       to_send['alt'] = report.alt
-                    #track   Course over ground, degrees from true north.
-                    if hasattr(report, 'track'):
-                       to_send['track'] = report.track
-                    #speed   Speed over ground, meters per second.
-                    if hasattr(report, 'speed'):
-                       to_send['speed'] = report.speed
-                    #climb   Climb (positive) or sink (negative) rate, meters per second.
-                    if hasattr(report, 'climb'):
-                       to_send['climb'] = report.climb
-
+                    attrs = ['time','lat','lon','alt','track','speed','climb'] 
+                    to_send[a] = [ report[a] for a in attrs if hasattr(report, a) ]
                     stomp_send(json.dumps(to_send))
 
                     if args.debug:
