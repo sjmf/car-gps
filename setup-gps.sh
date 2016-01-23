@@ -30,6 +30,39 @@ cp -v config/gpsd /etc/default/gpsd
 
 #dpkg should start gpsd in background, so don't run gpsd:
 #gpsd /dev/ttyAMA0 -F /var/run/gpsd.sock
+# cgps -s
 
-cgps -s
+# Copy files into /opt/
+mkdir /opt/stomp-gps || exit 1
+cp -r * /opt/stomp-gps/
+chmod +x /opt/stomp-gps/stomp-gps.py
+
+# Open an editor to set correct config vars
+if [ ! $EDITOR ]; then 
+    EDITOR=nano
+fi
+
+echo "Opening $EDITOR to set STOMP config. Press return to continue"
+read
+$EDITOR /opt/stomp-gps/config/stomp-config.json
+echo to edit this file again run: \`$EDITOR /opt/car-gps/stomp-config.json\`
+
+
+# Add gps script to start on boot
+echo "Setting up boot scripts in /etc/rc.local"
+if [[ "$(tail -n1 /etc/rc.local)" == "exit 0" ]]; 
+then 
+	echo "Removing exit 0 from end of /etc/rc.local"
+	head -n -1 /etc/rc.local > rc.local.tmp
+	mv rc.local.tmp /etc/rc.local
+fi
+
+
+echo "# Run stomp-gps script"  >> /etc/rc.local
+echo "echo \"Run stomp-gps script\""  >> /etc/rc.local
+echo "/opt/stomp-gps/run-gps.sh >/dev/null 2>&1 &" >> /etc/rc.local
+echo "" >> /etc/rc.local
+chmod +x /etc/rc.local
+
+echo "Done."
 
