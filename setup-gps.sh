@@ -32,7 +32,7 @@ cp -v config/gpsd /etc/default/gpsd
 #gpsd /dev/ttyAMA0 -F /var/run/gpsd.sock
 # cgps -s
 
-# Copy files into /opt/
+# Copy files into /opt/ (fail out if already exists)
 mkdir /opt/stomp-gps || exit 1
 cp -r * /opt/stomp-gps/
 chmod +x /opt/stomp-gps/stomp-gps.py
