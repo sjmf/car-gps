@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # GPS Receiver to STOMP bridge
-
-import gps, gps.client, json, stomp, ssl
+import gps, gps.client, json, stomp, ssl, time
 
 # Parse arguments from command line
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("-v", "--verbose", help="Transmit all strings, not just lat/lon/etc", action="store_true")
-parser.add_argument("-d", "--debug",   help="Print GPS NMEA output to terminal", action="store_true")
-parser.add_argument("-c", "--config",  help="Configuration file for STOMP")
+parser.add_argument("-f", "--full",   help="Transmit all GPS output, not just lat/lon/etc", action="store_true")
+parser.add_argument("-d", "--debug",  help="Print GPS NMEA output to terminal", action="store_true")
+parser.add_argument("-c", "--config", help="Configuration file for STOMP")
+parser.add_argument("-r", "--rate",   help="TPV packet forwarding rate limit", action="store_true")
 args = parser.parse_args()
 
 
@@ -16,6 +16,23 @@ args = parser.parse_args()
 if args.debug:
     import pprint
     pp = pprint.PrettyPrinter(indent=4).pprint
+
+
+# Print if debugging
+def debug_print(*a, **kw):
+    if args.debug:
+        pp(*a, **kw)
+
+
+last = 0
+def rate_limited(rate = 5):
+    global last
+    t = time.time()
+    if t > last+rate:
+        last = t
+        return False
+    return True
+
 
 
 # Unwrap (recursively) gps.client.dictwrapper objects
@@ -47,6 +64,7 @@ def auth_stomp():
         raise Exception("STOMP Auth Exception")
 
     return stomp_conf
+
 
 
 # Set up the STOMP connection
@@ -88,23 +106,19 @@ def main():
         try:
             report = unwrap( session.next() )
             
-            if args.debug:
-                pp(report)
-                print("\n")
-            
-            if args.verbose:
+            if args.full:
                 # Send whole report
+                debug_print(report)
                 stomp_send(json.dumps(report))
-            else:
+
+            elif not rate_limited():
                 # Filter 'TPV' reports for interesting values
                 if report['class'] == 'TPV':
-                    to_send = {}
-                    attrs = ['time','lat','lon','alt','track','speed','climb'] 
-                    to_send[a] = [ report[a] for a in attrs if hasattr(report, a) ]
+                    to_send = { a:report[a] for a in [u'time',u'lat',u'lon',u'alt',u'track',u'speed',u'climb'] }
+
+                    debug_print(to_send)
                     stomp_send(json.dumps(to_send))
 
-                    if args.debug:
-                        print("Sent Filtered TPV")
 
         except KeyError:
             pass
@@ -118,3 +132,4 @@ def main():
 if __name__ == '__main__':
     setup_stomp()
     main()
+
