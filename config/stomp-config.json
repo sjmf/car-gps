@@ -1,0 +1,14 @@
+{
+    "host": "example.com.invalid",
+    "port": 61614,
+    "ssl": true,
+
+    "user": "username",
+    "pass": "changeme",
+
+    "subscribe": ["/topic/car-sub"],
+    "publish": ["/topic/car-pub"],
+
+    "heartbeat_in": 60000,
+    "heartbeat_out": 30000
+}
