@@ -34,18 +34,22 @@ cp -v config/gpsd /etc/default/gpsd
 
 # Copy files into /opt/ (fail out if already exists)
 mkdir /opt/stomp-gps || exit 1
-cp -r * /opt/stomp-gps/
-chmod +x /opt/stomp-gps/stomp-gps.py
+cp -r config /opt/stomp-gps/
+cp stomp-gps.py /opt/stomp-gps/
+cp run-gps.sh /opt/stomp-gps/
+
+chmod +x /opt/stomp-gps/run-gps.sh
+
 
 # Open an editor to set correct config vars
 if [ ! $EDITOR ]; then 
     EDITOR=nano
 fi
 
-echo "Opening $EDITOR to set STOMP config. Press return to continue"
+echo "Opening $EDITOR to set STOMP config. Press return to continue..."
 read
 $EDITOR /opt/stomp-gps/config/stomp-config.json
-echo to edit this file again run: \`$EDITOR /opt/car-gps/stomp-config.json\`
+echo "To edit this file again run: \`$EDITOR /opt/car-gps/stomp-config.json\`"
 
 
 # Add gps script to start on boot
