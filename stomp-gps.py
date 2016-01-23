@@ -5,22 +5,22 @@ import gps, gps.client, json, stomp, ssl, time
 # Parse arguments from command line
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("-f", "--full",   help="Transmit all GPS output, not just lat/lon/etc", action="store_true")
-parser.add_argument("-d", "--debug",  help="Print GPS NMEA output to terminal", action="store_true")
-parser.add_argument("-c", "--config", help="Configuration file for STOMP")
-parser.add_argument("-r", "--rate",   help="TPV packet forwarding rate limit", action="store_true")
+parser.add_argument("-f", "--full",    help="Transmit all GPS output, not just lat/lon/etc", action="store_true")
+parser.add_argument("-v", "--verbose", help="Print GPS NMEA output to terminal", action="store_true")
+parser.add_argument("-c", "--config",  help="Configuration file for STOMP")
+parser.add_argument("-r", "--rate",    help="TPV packet forwarding rate limit", action="store_true")
 args = parser.parse_args()
 
 
 # When running with terminal output on
-if args.debug:
+if args.verbose:
     import pprint
     pp = pprint.PrettyPrinter(indent=4).pprint
 
 
 # Print if debugging
 def debug_print(*a, **kw):
-    if args.debug:
+    if args.verbose:
         pp(*a, **kw)
 
 
@@ -86,7 +86,7 @@ def setup_stomp():
     conn.start()
     conn.connect(stomp_conf['user'], stomp_conf['pass'], wait=True)
 
-    if args.debug:
+    if args.verbose:
         print("STOMP connected")
 
 
