@@ -71,6 +71,7 @@ def auth_stomp():
 def setup_stomp():
     global conn, stomp_conf
     stomp_conf = auth_stomp()
+    print("Queue: " + stomp_conf['user'] +'@'+ stomp_conf['host'] +':'+ str(stomp_conf['port']))
 
     conn = stomp.Connection(
         host_and_ports=[(stomp_conf['host'],stomp_conf['port'])],
